@@ -3,6 +3,7 @@ import os
 import sys
 
 import numpy as np
+from sklearn.decomposition import PCA
 import json
 import torch
 from PIL import Image
@@ -119,6 +120,7 @@ def save_mask_data(output_dir, mask_list, box_list, label_list):
     plt.imshow(mask_img.numpy())
     plt.axis('off')
     plt.savefig(os.path.join(output_dir, 'mask.jpg'), bbox_inches="tight", dpi=300, pad_inches=0.0)
+    plt.clf()
 
     json_data = [{
         'value': value,
@@ -136,6 +138,54 @@ def save_mask_data(output_dir, mask_list, box_list, label_list):
         })
     with open(os.path.join(output_dir, 'mask.json'), 'w') as f:
         json.dump(json_data, f)
+
+    
+    # save mask with axis
+    plt.figure(figsize=(10, 10))
+    plt.imshow(mask_img.numpy())
+    axis_json = []
+    for mask, label in zip(mask_list, label_list):
+        index = np.where(mask.cpu().numpy()[0] == True)
+        points = np.array([index[1], index[0]]).T
+
+        eigenvectors, explained_variance = get_pose_and_angle(points)
+
+        # Mean of the points
+        mean_point = points.mean(axis=0)
+        plt.plot(mean_point[0], mean_point[1], 'o', label='Mean', color='black')
+
+        name, logit = label.split('(')
+        axis_json.append({
+            'label': name,
+            'mean': mean_point.tolist(),
+            'eigenvectors': eigenvectors.tolist(),
+            'explained_variance': explained_variance.tolist()
+        })
+
+        # Plot the long and short axes
+        for i, (length, vector) in enumerate(zip(explained_variance, eigenvectors)):
+            v = vector * 2 * np.sqrt(length)
+            plt.plot([mean_point[0], mean_point[0] + v[0]], [mean_point[1], mean_point[1] + v[1]],
+                     label=f"Component {i+1} (Axis)", color=['red', 'blue'][i], lw=3)
+            
+
+    plt.savefig(os.path.join(output_dir, 'mask_axis.jpg'), bbox_inches="tight", dpi=300, pad_inches=0.0)
+    plt.clf()
+
+    with open(os.path.join(output_dir, 'mask_axis.json'), 'w') as f:
+        json.dump(axis_json, f)
+
+
+
+def get_pose_and_angle(pts):
+    pca = PCA(n_components=2)
+    pca.fit(pts)
+
+    # Get the principal components (eigenvectors) and explained variance (eigenvalues)
+    eigenvectors = pca.components_
+    explained_variance = pca.explained_variance_
+
+    return eigenvectors, explained_variance
 
 
 if __name__ == "__main__":
@@ -231,6 +281,7 @@ if __name__ == "__main__":
 
     cv2.imwrite(os.path.join(output_dir, "mask.jpg"), masks[0].cpu().numpy()[0].astype(np.uint8) * 255)
     # draw output image
+<<<<<<< Updated upstream
     # plt.figure(figsize=(10, 10))
     # plt.imshow(image)
     # for mask in masks:
@@ -245,3 +296,21 @@ if __name__ == "__main__":
     # )
 
     # save_mask_data(output_dir, masks, boxes_filt, pred_phrases)
+=======
+    plt.figure(figsize=(10, 10))
+    plt.imshow(image)
+    for mask in masks:
+        show_mask(mask.cpu().numpy(), plt.gca(), random_color=True)
+    for box, label in zip(boxes_filt, pred_phrases):
+        show_box(box.numpy(), plt.gca(), label)
+
+    plt.axis('off')
+    plt.savefig(
+        os.path.join(output_dir, "grounded_sam_output.jpg"),
+        bbox_inches="tight", dpi=300, pad_inches=0.0
+    )
+
+    save_mask_data(output_dir, masks, boxes_filt, pred_phrases)
+
+    
+>>>>>>> Stashed changes

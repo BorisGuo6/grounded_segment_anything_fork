@@ -1,0 +1,36 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python Debugger: Current File",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args":[
+                "--config",
+                "GroundingDINO/groundingdino/config/GroundingDINO_SwinT_OGC.py",
+                "--grounded_checkpoint",
+                "groundingdino_swint_ogc.pth",
+                "--sam_checkpoint",
+                "sam_vit_h_4b8939.pth",
+                "--input_image",
+                "assets/test/table_top.jpg",
+                "--output_dir",
+                "outputs/test",
+                "--box_threshold",
+                "0.3",
+                "--text_threshold",
+                "0.25",
+                "--text_prompt",
+                "mug, box, bowl",
+                "--device",
+                "cuda"
+            ]
+        }
+    ]
+}
+

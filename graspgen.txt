@@ -1,0 +1,2 @@
+- Translation: [0.4366, -0.028, 0.565]
+- Rotation: in Quaternion [0.999, -0.025, 0.030, 0.016]
